@@ -31,7 +31,8 @@ class HBaseDaoImpl extends HBaseDao with Serializable {
 
   def this(etlDate: String) {
     this
-    this.prefix = "ecifdb" + etlDate;
+    this.prefix = "ecifdb20191201";
+    //    this.prefix = "ecifdb" + etlDate;
   }
 
   private def getORMTable[T](t: T): String = {
@@ -218,7 +219,7 @@ class HBaseDaoImpl extends HBaseDao with Serializable {
       increment = table.incrementColumnValue(Bytes.toBytes(rowKey), Bytes.toBytes(columnFamily), Bytes.toBytes(column), amount);
     } catch {
       case e: Exception =>
-        logger.error("singleIncreament failed: {}", e.getMessage);
+        logger.error("singleIncreament failed: {}", e);
     } finally if (table != null) table.close();
     return increment;
   }

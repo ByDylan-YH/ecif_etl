@@ -49,6 +49,7 @@ object StartMain {
       .set("spark.shuffle.service.enabled", "false")
       .set("spark.dynamicAllocation.enabled", "false")
       .set("spark.network.timeout", "30")
+      .set("spark.ui.showConsoleProgress","true")
     //      .set("spark.ui.showconsoleeprogress", "true")
     //      .set("hive.metastore.urls", "thrift://192.168.1.201:9083")
     //      .setMaster("spark://by202:7077");

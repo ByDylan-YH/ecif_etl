@@ -32,7 +32,8 @@ case class MultiFlgsTaskServerImpl(taskName: String,
     val cmTaskDao: TaskDao = new CMTaskDaoImpl(etlDate = etlDate);
     val sparkSession: SparkSession = taskEnvEntity.sparkSession;
     val sparkContext: SparkContext = sparkSession.sparkContext;
-    val hbaseNamespace: String = taskEnvEntity.hbaseNamespace;
+    val hbaseNamespace: String = "ecifdb20191201:";
+//    val hbaseNamespace: String = taskEnvEntity.hbaseNamespace;
     val codeBroadcast: Broadcast[mutable.HashMap[String, String]] = taskEnvEntity.codeBroadcast;
     val groupIdBroadCast: Broadcast[mutable.HashMap[String, String]] = taskEnvEntity.groupIdBroadCast;
     val illegalCertsBroadcast: Broadcast[ArrayBuffer[String]] = taskEnvEntity.illegalCertsBroadcast;

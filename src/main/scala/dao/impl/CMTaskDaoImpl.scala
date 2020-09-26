@@ -291,7 +291,6 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
     val sparkContext = sparkSession.sparkContext;
     val custDtf: DataFrame = sparkSession.createDataFrame(srcCustRdd).toDF("src_cust_id", "src_name", "src_cert_no", "src_certtype", "group_id", "src_sys", "src_cust_type", "src_cust_status_bf");
     logger.info("过滤空值后转成DataFrame,custDtf: : {}", custDtf.show(300));
-
     //    读取源pty_src_cust_id
     val value: RDD[(String, String, String, String)] = getPtySrcCustIdDtf(hbaseNamespace + "PTY_SRC_CUST_ID", sparkContext, etlDate);
     val ptySrcCustIdDtf: DataFrame = sparkSession.createDataFrame(getPtySrcCustIdDtf(hbaseNamespace + "PTY_SRC_CUST_ID", sparkContext, etlDate)).toDF("cust_id", "cust_type_cd", "src_cust_id", "src_sys");

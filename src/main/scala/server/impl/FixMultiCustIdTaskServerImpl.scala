@@ -60,9 +60,12 @@ class FixMultiCustIdTaskServerImpl(taskName: String,
 
     val etlDate: String = taskEntity.etlDate;
     val codeBroadcast = taskEntity.codeBroadcast;
-    val srcTable = s"${taskEntity.hbaseNamespace}PTY_SRC_CUST_ID";
-    val custFlgTable = s"${taskEntity.hbaseNamespace}PTY_CUST_FLG";
-    val groupTable = s"${taskEntity.hbaseNamespace}PTY_CUST_GROUP";
+//    val srcTable = s"${taskEntity.hbaseNamespace}PTY_SRC_CUST_ID";
+//    val custFlgTable = s"${taskEntity.hbaseNamespace}PTY_CUST_FLG";
+//    val groupTable = s"${taskEntity.hbaseNamespace}PTY_CUST_GROUP";
+    val srcTable = s"ecifdb20191201:PTY_SRC_CUST_ID";
+    val custFlgTable = s"ecifdb20191201:PTY_CUST_FLG";
+    val groupTable = s"ecifdb20191201:PTY_CUST_GROUP";
     val hBaseConf: Configuration = HBaseJDBCManager.getConnection.getConfiguration;
     logger.info("srcTable: {} , custFlgTable: {} , groupTable: {}", srcTable, custFlgTable, groupTable);
     //    三要素表

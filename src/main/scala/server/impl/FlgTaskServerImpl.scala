@@ -32,7 +32,8 @@ case class FlgTaskServerImpl(taskName: String,
     val etlDate: String = taskEntity.etlDate;
     val cmTaskDao: TaskDao = new CMTaskDaoImpl(etlDate);
     val codeBroadcast: Broadcast[mutable.HashMap[String, String]] = taskEntity.codeBroadcast;
-    val hbaseNamespace: String = taskEntity.hbaseNamespace;
+    val hbaseNamespace: String = "ecifdb20191201:";
+//    val hbaseNamespace: String = taskEntity.hbaseNamespace;
     val groupIdBroadCast: Broadcast[mutable.HashMap[String, String]] = taskEntity.groupIdBroadCast;
     val illegalCertsBroadcast: Broadcast[ArrayBuffer[String]] = taskEntity.illegalCertsBroadcast;
     //读取源系统客户信息
