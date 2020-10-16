@@ -1,9 +1,15 @@
 package main
 
+import java.io.IOException
+import java.util
+
+import dao.HBaseDao
+import dao.impl.HBaseDaoImpl
 import manager.HBaseJDBCManager
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
+import org.apache.hadoop.hbase.{CompareOperator, HBaseConfiguration, TableName}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, Result, ResultScanner, Scan, Table}
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
 import org.apache.hadoop.hbase.util.Bytes
@@ -11,6 +17,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
 import utils.BytesUtils
+
+import scala.collection.JavaConverters
 
 /**
  * Author:BYDylan
@@ -53,40 +61,36 @@ object TestHBase {
     //      println(name);
     //    }
     //    读取三要素信息
-//    val ptySrcCustIdDtf = sparkSession.createDataFrame(getPtySrcCustIdDtf("ecifdb20191201:PTY_SRC_CUST_ID", sc, "20191201"))
-//      .toDF("cust_id", "cust_type_cd", "src_cust_id", "src_sys");
-//    ptySrcCustIdDtf.show();
-
-    val l: Long = singleIncreament("FR_SEQ", "FR", "f", "id", 1);
-    println(l)
+    //    val ptySrcCustIdDtf = sparkSession.createDataFrame(getPtySrcCustIdDtf("ecifdb20191201:PTY_SRC_CUST_ID", sc, "20191201"))
+    //      .toDF("cust_id", "cust_type_cd", "src_cust_id", "src_sys");
+    //    ptySrcCustIdDtf.show();
+    val custIdList: util.List[String] = getColumnValueFilter("ecifdb20191201:PTY_SRC_CUST_ID", "f", "cust_id", "src_cust_id", "800113");
+    val custId: String = custIdList.get(0);
+    val certTypeCdList: util.List[String] = getColumnValueFilter("ecifdb20191201:PTY_CUST_FLG"
+      , "f"
+      , "cert_type_cd"
+      , "cust_id"
+      , custId);
+    println(certTypeCdList);
 
     sc.stop();
   }
 
-  def getPtySrcCustIdDtf(table: String,
-                         sparkContext: SparkContext,
-                         etl_date: String): RDD[(String, String, String, String)] = {
-    hbaseConf.set(TableInputFormat.INPUT_TABLE, table); // 源系统和ecif对照表
-
-    // 从数据源获取数据
-    val pty_src_cust_id: RDD[(ImmutableBytesWritable, Result)] = sparkContext.newAPIHadoopRDD(hbaseConf
-      , classOf[TableInputFormat]
-      , classOf[ImmutableBytesWritable]
-      , classOf[Result])
-
-    // 将数据映射为表  也就是将 RDD转化为 dataframe schema
-    pty_src_cust_id.map(r => (
-      Bytes.toString(r._2.getValue(Bytes.toBytes("f"), Bytes.toBytes("cust_id"))),
-      Bytes.toString(r._2.getValue(Bytes.toBytes("f"), Bytes.toBytes("cust_type_cd"))),
-      Bytes.toString(r._2.getValue(Bytes.toBytes("f"), Bytes.toBytes("src_cust_id"))),
-      Bytes.toString(r._2.getValue(Bytes.toBytes("f"), Bytes.toBytes("src_sys")))
-    ));
-  }
-
-  def singleIncreament(tableName: String, rowKey: String, columnFamily: String, column: String, amount: Long): Long = {
-    //    println(prefix + tableName + " : " + rowKey + " : " + columnFamily + " : " + column + " : " + amount);
-    val table: Table = HBaseJDBCManager.getConnection.getTable(TableName.valueOf("ecifdb20191201:FR_SEQ"));
-    val increment: Long = table.incrementColumnValue(Bytes.toBytes(rowKey), Bytes.toBytes(columnFamily), Bytes.toBytes(column), amount);
-    return increment;
+  def getColumnValueFilter(tableName: String, family: String, targetColumn: String, queryColumn: String, queryColumnValue: String): util.List[String] = {
+    val returnList = new util.ArrayList[String];
+    try {
+      val table: Table = HBaseJDBCManager.getConnection.getTable(TableName.valueOf(tableName));
+      val filter = new SingleColumnValueFilter(Bytes.toBytes(family), Bytes.toBytes(queryColumn), CompareOperator.EQUAL, Bytes.toBytes(queryColumnValue));
+      val scan = new Scan;
+      scan.setFilter(filter);
+      val resultScanner: ResultScanner = table.getScanner(scan);
+      for (result <- JavaConverters.asScalaIterator(resultScanner.iterator())) {
+        returnList.add(Bytes.toString(result.getValue(Bytes.toBytes(family), Bytes.toBytes(targetColumn))));
+      }
+    } catch {
+      case e: IOException =>
+        e.printStackTrace();
+    }
+    return returnList;
   }
 }

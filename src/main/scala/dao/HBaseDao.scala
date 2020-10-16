@@ -12,6 +12,7 @@ import scala.collection.mutable.ArrayBuffer
  * Description:
  */
 abstract class HBaseDao {
+
   def createTable(tableName: String, familyColumns: ArrayBuffer[String]): Unit;
 
   //  def getEtlDate():String;
@@ -27,9 +28,12 @@ abstract class HBaseDao {
   //  def delete(clazz: Class[HBaseEntity], rowkeys: String*): Unit;
 
   def delete[T](t: Class[T], rowkeys: ArrayBuffer[String]): Unit;
+
   def delete(deletes: ArrayBuffer[Delete], tableName: String): Unit;
 
   def scaneByPrefixFilter(tableName: String, rowPrifix: String): util.Iterator[Result];
 
   def singleIncreament(tableName: String, rowKey: String, columnFamily: String, column: String, amount: Long): Long;
+
+  def getColumnValueFilter(tableName: String, family: String, targetColumn: String, queryColumn: String, queryColumnValue: String): util.List[String];
 }

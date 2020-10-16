@@ -62,7 +62,7 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
   }
 
   override def foreachFlg(custFlgRdd: RDD[(String, Iterable[(String, String, String, String, String, String, String, String, String)])],
-                 hbaseNamespace: String, illegalCerts: ArrayBuffer[String]): Unit = {
+                          hbaseNamespace: String, illegalCerts: ArrayBuffer[String]): Unit = {
     custFlgRdd.foreachPartition(itr => {
       val ptyCustFlgCache: ArrayBuffer[PTY_CUST_FLGEntity] = ArrayBuffer[PTY_CUST_FLGEntity]();
       //      val ptyCustFlgCacheTableName: String = annotationUtils.getClassAnnotation[PTY_CUST_FLGEntity, HBaseTable];
@@ -158,7 +158,31 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
                     cust_id = getNewCustId(if (src_cust_type == "01") "GR" else "FR");
                   }
                   val srcCustIdKey = rel_cust_id.reverse + EncryptUtils.md5Encrypt32(src_cust_id + src_sys);
-                  delPtySrcCustIdCache.+=(srcCustIdKey);
+                  if (src_cust_type != "01") {
+                    println("不是个人客户")
+                    //                    val custIdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb" + etlDate + ":PTY_SRC_CUST_ID"
+                    val custIdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb20191201:PTY_SRC_CUST_ID"
+                      , "f"
+                      , "cust_id"
+                      , "src_cust_id"
+                      , src_cust_id);
+                    //                    这张表默认只有1个custId,但列值过滤器返回的是一个list,先默认取第1个元素
+                    val custId: String = custIdList.get(0);
+                    //                    val certTypeCdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb" + etlDate + ":PTY_CUST_FLG"
+                    val certTypeCdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb20191201:PTY_CUST_FLG"
+                      , "f"
+                      , "cert_type_cd"
+                      , "cust_id"
+                      , custId);
+                    println(certTypeCdList);
+                    //                    如果本次生成的 cert_type_cd 能在之前的表找到,那么就不执行删除操作,否则执行
+                    if (!certTypeCdList.contains(src_certtype)) {
+                      //                      println("执行删除")
+                      delPtySrcCustIdCache.+=(srcCustIdKey);
+                    }
+                  } else {
+                    delPtySrcCustIdCache.+=(srcCustIdKey);
+                  }
                   ptyCustFlgCache.+=(toCustFlg(cust_id, src_cert_no, src_certtype, src_name, src_cust_type));
                   ptyCustGroupCache.+=(toCustGroup(cust_id, src_sys, src_cust_id, group_id, src_cust_status_bf));
                   if (cust_type_cd == "01" || cust_type_cd == "02") { // 原来是正式客户, 现在依旧是, 更新记录
@@ -191,11 +215,11 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
           }
         })
       })
+      hbaseDao.delete(classOf[PTY_CUST_FLGEntity], delPtySrcCustIdCache); // 终极bug
+      hbaseDao.delete(classOf[PTY_CUST_FLGEntity], delPtyCustFlgCache);
       hbaseDao.save(ptyCustFlgCache);
       hbaseDao.save(ptySrcCustIdCache);
       hbaseDao.save(ptyCustGroupCache);
-      hbaseDao.delete(classOf[PTY_CUST_FLGEntity], delPtySrcCustIdCache); // 终极bug
-      hbaseDao.delete(classOf[PTY_CUST_FLGEntity], delPtyCustFlgCache);
 
       ptyCustFlgCache.clear();
       ptyCustFlgCache.clear();
@@ -285,9 +309,9 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
    * 关联3：用关联2的结果,取源系统客户三要素关联PTY_CUST_FLG，能关联上说明已经为这个三要素分配过ecif客户号
    * 取flg_cust_id为能否关联的标志
    */
- override def joinInfos(sparkSession: SparkSession,
-                srcCustRdd: RDD[(String, String, String, String, String, String, String, String)],
-                hbaseNamespace: String): DataFrame = {
+  override def joinInfos(sparkSession: SparkSession,
+                         srcCustRdd: RDD[(String, String, String, String, String, String, String, String)],
+                         hbaseNamespace: String): DataFrame = {
     val sparkContext = sparkSession.sparkContext;
     val custDtf: DataFrame = sparkSession.createDataFrame(srcCustRdd).toDF("src_cust_id", "src_name", "src_cert_no", "src_certtype", "group_id", "src_sys", "src_cust_type", "src_cust_status_bf");
     logger.info("过滤空值后转成DataFrame,custDtf: : {}", custDtf.show(300));
@@ -309,22 +333,22 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
 
     //    关联2
     val joinFlgByCustIdDtf = joinSrcCustIdDtf.join(ptyCustFlgDtf
-    , joinSrcCustIdDtf("rel_cust_id") === ptyCustFlgDtf("cust_id")
-    && joinSrcCustIdDtf("src_name") === ptyCustFlgDtf("name")
-    && joinSrcCustIdDtf("src_certtype") === ptyCustFlgDtf("cert_type_cd")
-    && joinSrcCustIdDtf("src_cert_no") === ptyCustFlgDtf("cert_no"), "left")
-    .withColumnRenamed("cust_id", "stock_cust_id")
-    .drop("name").drop("cert_no").drop("cert_type_cd");
+      , joinSrcCustIdDtf("rel_cust_id") === ptyCustFlgDtf("cust_id")
+        && joinSrcCustIdDtf("src_name") === ptyCustFlgDtf("name")
+        && joinSrcCustIdDtf("src_certtype") === ptyCustFlgDtf("cert_type_cd")
+        && joinSrcCustIdDtf("src_cert_no") === ptyCustFlgDtf("cert_no"), "left")
+      .withColumnRenamed("cust_id", "stock_cust_id")
+      .drop("name").drop("cert_no").drop("cert_type_cd");
     logger.info("关联2: {}", joinFlgByCustIdDtf.show(300));
 
     //关联3
     val joinFlgWithFlg = joinFlgByCustIdDtf.join(ptyCustFlgDtf
-    , joinFlgByCustIdDtf("src_name") === ptyCustFlgDtf("name")
-    && joinFlgByCustIdDtf("src_certtype") === ptyCustFlgDtf("cert_type_cd")
-    && joinFlgByCustIdDtf("src_cert_no") === ptyCustFlgDtf("cert_no"),
-    "left")
-    .withColumnRenamed("cust_id", "flg_cust_id")
-    .drop("name").drop("cert_no").drop("cert_type_cd");
+      , joinFlgByCustIdDtf("src_name") === ptyCustFlgDtf("name")
+        && joinFlgByCustIdDtf("src_certtype") === ptyCustFlgDtf("cert_type_cd")
+        && joinFlgByCustIdDtf("src_cert_no") === ptyCustFlgDtf("cert_no"),
+      "left")
+      .withColumnRenamed("cust_id", "flg_cust_id")
+      .drop("name").drop("cert_no").drop("cert_type_cd");
     logger.info("关联3: {}", joinFlgWithFlg.show(300));
 
     return joinFlgWithFlg;

@@ -3,13 +3,15 @@ package dao.impl
 import java.io.IOException
 import java.lang.reflect.Field
 import java.util
+import java.util.{ArrayList, List}
 
 import annotation.{EnumStoreType, HBaseColumn, HBaseTable}
 import dao.HBaseDao
 import manager.HBaseJDBCManager
 import org.apache.commons.lang3.StringUtils
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.{CompareOperator, TableName}
 import org.apache.hadoop.hbase.client._
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter
 import org.apache.hadoop.hbase.util.Bytes
 import org.slf4j.{Logger, LoggerFactory}
 import utils.BytesUtils
@@ -222,6 +224,24 @@ class HBaseDaoImpl extends HBaseDao with Serializable {
         logger.error("singleIncreament failed: {}", e);
     } finally if (table != null) table.close();
     return increment;
+  }
+
+  override def getColumnValueFilter(tableName: String, family: String, targetColumn: String, queryColumn: String, queryColumnValue: String): util.List[String] = {
+    val returnList = new util.ArrayList[String];
+    try {
+      val table: Table = HBaseJDBCManager.getConnection.getTable(TableName.valueOf(tableName));
+      val filter = new SingleColumnValueFilter(Bytes.toBytes(family), Bytes.toBytes(queryColumn), CompareOperator.EQUAL, Bytes.toBytes(queryColumnValue));
+      val scan = new Scan;
+      scan.setFilter(filter);
+      val resultScanner: ResultScanner = table.getScanner(scan);
+      for (result <- JavaConverters.asScalaIterator(resultScanner.iterator())) {
+        returnList.add(Bytes.toString(result.getValue(Bytes.toBytes(family), Bytes.toBytes(targetColumn))));
+      }
+    } catch {
+      case e: IOException =>
+        e.printStackTrace();
+    }
+    return returnList;
   }
 
 }
