@@ -8,7 +8,7 @@ import java.util.UUID
 import dao.{HBaseDao, TaskDao}
 import entity.CustTypeEntity
 import entity.hbase.{PTY_CUST_FLGEntity, PTY_CUST_GROUPEntity, PTY_SRC_CUST_IDEntity}
-import manager.{HBaseJDBCManager, ProManager}
+import manager.{HBaseJDBCManager, ParaManager, ProManager}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -160,24 +160,21 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
                   val srcCustIdKey = rel_cust_id.reverse + EncryptUtils.md5Encrypt32(src_cust_id + src_sys);
                   if (src_cust_type != "01") {
                     println("不是个人客户")
-                    //                    val custIdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb" + etlDate + ":PTY_SRC_CUST_ID"
                     val custIdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb20191201:PTY_SRC_CUST_ID"
-                      , "f"
+                      , ProManager.hbaseColumnFamily
                       , "cust_id"
                       , "src_cust_id"
                       , src_cust_id);
                     //                    这张表默认只有1个custId,但列值过滤器返回的是一个list,先默认取第1个元素
                     val custId: String = custIdList.get(0);
-                    //                    val certTypeCdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb" + etlDate + ":PTY_CUST_FLG"
                     val certTypeCdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb20191201:PTY_CUST_FLG"
-                      , "f"
+                      , ProManager.hbaseColumnFamily
                       , "cert_type_cd"
                       , "cust_id"
                       , custId);
                     println(certTypeCdList);
-                    //                    如果本次生成的 cert_type_cd 能在之前的表找到,那么就不执行删除操作,否则执行
-                    if (!certTypeCdList.contains(src_certtype)) {
-                      //                      println("执行删除")
+                    //                    如果本次生成的 cert_type_cd 能在之前的表找到,那么就执行删除操作
+                    if (certTypeCdList.contains(src_certtype)) {
                       delPtySrcCustIdCache.+=(srcCustIdKey);
                     }
                   } else {
