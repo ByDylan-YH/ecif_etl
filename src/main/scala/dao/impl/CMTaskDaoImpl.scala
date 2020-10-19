@@ -159,7 +159,6 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
                   }
                   val srcCustIdKey = rel_cust_id.reverse + EncryptUtils.md5Encrypt32(src_cust_id + src_sys);
                   if (src_cust_type != "01") {
-                    println("不是个人客户")
                     val custIdList: util.List[String] = hbaseDao.getColumnValueFilter("ecifdb20191201:PTY_SRC_CUST_ID"
                       , ProManager.hbaseColumnFamily
                       , "cust_id"
@@ -172,8 +171,8 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
                       , "cert_type_cd"
                       , "cust_id"
                       , custId);
-                    println(certTypeCdList);
                     //                    如果本次生成的 cert_type_cd 能在之前的表找到,那么就执行删除操作
+                    println(src_cust_id + " : " + certTypeCdList + " : " + src_certtype);
                     if (certTypeCdList.contains(src_certtype)) {
                       delPtySrcCustIdCache.+=(srcCustIdKey);
                     }
@@ -212,7 +211,7 @@ class CMTaskDaoImpl extends TaskDao with Serializable {
           }
         })
       })
-      hbaseDao.delete(classOf[PTY_CUST_FLGEntity], delPtySrcCustIdCache); // 终极bug
+      hbaseDao.delete(classOf[PTY_SRC_CUST_IDEntity], delPtySrcCustIdCache); // 终极bug
       hbaseDao.delete(classOf[PTY_CUST_FLGEntity], delPtyCustFlgCache);
       hbaseDao.save(ptyCustFlgCache);
       hbaseDao.save(ptySrcCustIdCache);

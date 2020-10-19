@@ -1,28 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?><!--
-   Licensed to the Apache Software Foundation (ASF) under one or more
-   contributor license agreements.  See the NOTICE file distributed with
-   this work for additional information regarding copyright ownership.
-   The ASF licenses this file to You under the Apache License, Version 2.0
-   (the "License"); you may not use this file except in compliance with
-   the License.  You may obtain a copy of the License at
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
--->
 <configuration>
-    <!-- WARNING!!! This file is auto generated for documentation purposes ONLY! -->
-    <!-- WARNING!!! Any changes you make to this file will be ignored by Hive.   -->
-    <!-- WARNING!!! You must make your changes in hive-site.xml instead.         -->
-    <!-- Hive Execution Parameters -->
     <property>
         <name>javax.jdo.option.ConnectionURL</name>
-        <value>jdbc:mysql://192.168.1.6:3306/hive?createDatabaseIfNotExist=true&amp;useSSL=false&amp;serverTimezone=Asia/Shanghai</value>
+        <value>jdbc:mysql://192.168.1.6:3306/hive?createDatabaseIfNotExist=true&amp;useSSL=false</value>
     </property>
     <property>
         <name>javax.jdo.option.ConnectionDriverName</name>
@@ -60,36 +42,38 @@
         <name>hive.server2.authentication</name>
         <value>NONE</value>
     </property>
+    <!-- Hive整合 Tez -->
+    <property>
+        <name>hive.tez.container.size</name>
+        <value>2048</value>
+    </property>
+    <!-- 允许 hive 递归读取子目录 -->
+    <property>
+        <name>mapred.input.dir.recursive</name>
+        <value>true</value>
+    </property>
+    <!-- Hive整合 Spark -->
     <property>
         <name>spark.master</name>
-        <value>spark://192.168.1.202:7077</value>
+        <value>spark://by202:7077</value>
     </property>
     <property>
         <name>spark.home</name>
-        <value>/opt/mysoft/spark-3.0.0-bin-hadoop3.2</value>
+        <value>/opt/software/spark-3.0.1-bin-hadoop3.2</value>
     </property>
     <!-- spark.yarn.jars         hdfs://192.168.1.202:9870/spark_jars/* -->
-    <!-- # hdfs dfs -put /opt/mysoft/spark-3.0.0-bin-hadoop3.2/jars/* /spark_jars/ -->
+    <!-- # hdfs dfs -put /opt/software/spark-3.0.0-bin-hadoop3.2/jars/* /spark_jars/ -->
     <property>
         <name>spark.yarn.jars</name>
         <value>hdfs://192.168.1.202:9870/spark_jars/*</value>
     </property>
-    <!-- 一些警告 -->
-    <property>
-        <name>hive.stats.jdbc.timeout</name>
-        <value>3000</value>
-        <description>Timeout value (number of seconds) used by JDBC connection and statements.</description>
-    </property>
-    <property>
-        <name>hive.metastore.urls</name>
-        <value>thrift://192.168.1.201:9083</value>
-    </property>
-    <property>
-        <name>hive.stats.retries.wait</name>
-        <value>3000</value>
-    </property>
     <property>
         <name>hive.enable.spark.execution.engine</name>
         <value>true</value>
+    </property>
+    <!-- Hive整合 HBase -->
+    <property>
+        <name>hive.zookeeper.quorum</name>
+        <value>192.168.1.201,192.168.1.202,192.168.1.203</value>
     </property>
 </configuration>

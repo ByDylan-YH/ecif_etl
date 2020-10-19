@@ -17,9 +17,18 @@ import scala.collection.mutable.ArrayBuffer
  * Author:BYDylan
  * Date:2020/8/28
  * Description:
+ * 第一天
  * S008: 20191201 cm_o_s008_bib_t_cm_clientinfo 0
  * S015: 20191201 cm_o_s015_tg_t_dc_glr_info 0
  * Fix : 20191201 fix_multi_custid_task 0
+ * 第二天
+ * S008: 20191202 cm_o_s008_bib_t_cm_clientinfo 0
+ * S015: 20191202 cm_o_s015_tg_t_dc_glr_info 0
+ * Fix : 20191202 fix_multi_custid_task 0
+ * 第三天
+ * S008: 20191203 cm_o_s008_bib_t_cm_clientinfo 0
+ * S015: 20191203 cm_o_s015_tg_t_dc_glr_info 0
+ * Fix : 20191203 fix_multi_custid_task 0
  */
 object StartMain {
   @transient private val logger: Logger = LoggerFactory.getLogger(this.getClass);
@@ -44,7 +53,7 @@ object StartMain {
     logger.info("etlDate: {}, taskName: {}, taskOrder: {}", etlDate, taskName, taskOrder);
     val sparkConf: SparkConf = new SparkConf().setAppName("ecif_etl_yh").set("spark.shuffle.consolidateFiles", "true")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .set("spark.testing.memory", "4294960000")
+      .set("spark.testing.memory", "6294960000")
       .set("spark.cores.max", "4")
       .set("spark.shuffle.service.enabled", "false")
       .set("spark.dynamicAllocation.enabled", "false")
