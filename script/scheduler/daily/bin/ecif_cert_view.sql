@@ -1,0 +1,56 @@
+ drop view if exists ${hiveconf:namespace}.pty_cert;
+ create view if not exists ${hiveconf:namespace}.pty_cert (
+ `pbk_id`  comment '分区业务编号',
+ `bk_id`  comment '业务编号',
+ `row_lock`  comment '行级锁',
+ `group_id`  comment '群组编号',
+ `src_cust_id`  comment '源系统客户编号',
+ `cust_id`  comment '客户编号',
+ `cn_name`  comment '中文名称',
+ `cert_type_cd`  comment '证件类型代码',
+ `cert_no`  comment '证件号码',
+ `cert_valid_term`  comment '证件有效期',
+ `cert_effect_dt`  comment '证件有效开始日期',
+ `cert_end_dt`  comment '证件有效结束日期',
+ `issue_org`  comment '证件签发机关',
+ `cust_type_cd`  comment '客户类型代码',
+ `issue_dt`  comment '发证日期',
+ `src_sys`  comment '来源系统',
+ `upd_sys`  comment '更新系统',
+ `data_crt_tm`  comment '数据创建时间',
+ `data_upd_tm`  comment '数据更新时间',
+ `etl_crt_tm`  comment 'ETL创建时间',
+ `etl_upd_tm`  comment 'ETL更新时间',
+ `is_idcard_flag`  comment '合法身份证标志',
+ `is_merge_flag`  comment '是否合并标志',
+ `last_merge_rowkey`  comment '上一次合并前行键'
+) COMMENT '证件信息'
+ as
+  select
+    `pbk_id`,
+    `bk_id`,
+    `row_lock`,
+    `group_id`,
+    `src_cust_id`,
+    `cust_id`,
+    `cn_name`,
+    `cert_type_cd`,
+    `cert_no`,
+    `cert_valid_term`,
+    `cert_effect_dt`,
+    `cert_end_dt`,
+    `issue_org`,
+    `cust_type_cd`,
+    `issue_dt`,
+    `src_sys`,
+    `upd_sys`,
+    `data_crt_tm`,
+    `data_upd_tm`,
+    `etl_crt_tm`,
+    `etl_upd_tm`,
+    `is_idcard_flag`,
+    `is_merge_flag`,
+    `last_merge_rowkey`
+ from
+  ${hiveconf:namespace}.pty_cust_info;
+
